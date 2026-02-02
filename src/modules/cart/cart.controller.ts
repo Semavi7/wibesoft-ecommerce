@@ -4,6 +4,8 @@ import { plainToInstance } from 'class-transformer';
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { CartResponseDto } from './dto/cart-response.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { ICurrentUser } from '../auth/interfaces/current-user.interface';
 
 @ApiTags('Cart')
 @Controller('cart')
@@ -12,39 +14,36 @@ export class CartController {
 
   @Get()
   @ApiOperation({ summary: 'Kullanıcının sepetini getir' })
-  @ApiQuery({ name: 'userId', required: true, description: 'Test edilecek Kullanıcı ID (UUID)' })
   @ApiResponse({ status: 200, type: CartResponseDto })
   async getCart(
-    @Query('userId', ParseUUIDPipe) userId: string 
+    @CurrentUser() user: ICurrentUser 
   ): Promise<CartResponseDto> {
     
-    const cart = await this.cartService.getCart(userId);
+    const cart = await this.cartService.getCart(user.id);
     return plainToInstance(CartResponseDto, cart, { excludeExtraneousValues: true });
   }
 
   @Post()
   @ApiOperation({ summary: 'Sepete ürün ekle' })
-  @ApiQuery({ name: 'userId', required: true, description: 'Test edilecek Kullanıcı ID (UUID)' })
   @ApiResponse({ status: 201, type: CartResponseDto })
   async addToCart(
-    @Query('userId', ParseUUIDPipe) userId: string, 
+    @CurrentUser() user: ICurrentUser, 
     @Body() dto: AddToCartDto
   ): Promise<CartResponseDto> {
     
-    const updatedCart = await this.cartService.addToCart(userId, dto);
+    const updatedCart = await this.cartService.addToCart(user.id, dto);
     return plainToInstance(CartResponseDto, updatedCart, { excludeExtraneousValues: true });
   }
 
   @Delete(':itemId')
   @ApiOperation({ summary: 'Sepetten ürün çıkar' })
-  @ApiQuery({ name: 'userId', required: true, description: 'Test edilecek Kullanıcı ID (UUID)' })
   @ApiResponse({ status: 200, type: CartResponseDto })
   async removeItem(
     @Param('itemId', ParseUUIDPipe) itemId: string,
-    @Query('userId', ParseUUIDPipe) userId: string 
+    @CurrentUser() user: ICurrentUser
   ): Promise<CartResponseDto> {
     
-    const updatedCart = await this.cartService.removeFromCart(userId, itemId);
+    const updatedCart = await this.cartService.removeFromCart(user.id, itemId);
     return plainToInstance(CartResponseDto, updatedCart, { excludeExtraneousValues: true });
   }
 }
