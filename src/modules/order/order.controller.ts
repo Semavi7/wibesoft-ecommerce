@@ -4,6 +4,8 @@ import { plainToInstance } from 'class-transformer';
 import { OrdersService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { ICurrentUser } from '../auth/interfaces/current-user.interface';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -12,24 +14,22 @@ export class OrdersController {
 
   @Post()
   @ApiOperation({ summary: 'Sepeti Siparişe Dönüştür (Checkout)' })
-  @ApiQuery({ name: 'userId', required: true, description: 'Test Kullanıcı ID' })
   @ApiResponse({ status: 201, type: OrderResponseDto })
   async create(
-    @Query('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: ICurrentUser,
     @Body() createOrderDto: CreateOrderDto
   ): Promise<OrderResponseDto> {
     
-    const order = await this.ordersService.create(userId, createOrderDto);
+    const order = await this.ordersService.create(user.id, createOrderDto);
     return plainToInstance(OrderResponseDto, order, { excludeExtraneousValues: true });
   }
 
   @Get()
   @ApiOperation({ summary: 'Kullanıcının geçmiş siparişlerini getir' })
-  @ApiQuery({ name: 'userId', required: true })
   @ApiResponse({ status: 200, type: [OrderResponseDto] })
-  async findAll(@Query('userId', ParseUUIDPipe) userId: string): Promise<OrderResponseDto[]> {
+  async findAll(@CurrentUser() user: ICurrentUser): Promise<OrderResponseDto[]> {
     
-    const orders = await this.ordersService.findAllByUser(userId);
+    const orders = await this.ordersService.findAllByUser(user.id);
     return plainToInstance(OrderResponseDto, orders, { excludeExtraneousValues: true });
   }
 

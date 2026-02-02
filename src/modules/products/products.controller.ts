@@ -1,17 +1,18 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
-import { AuthGuard } from '@nestjs/passport';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
+import { Public } from '../auth/decorators/public.decorator';
 
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) { }
 
+  @Public()
   @Get()
   @ApiOperation({ summary: 'Tüm ürünleri listele' })
   @ApiResponse({ status: 200, type: [ProductResponseDto] })
@@ -20,6 +21,7 @@ export class ProductsController {
     return plainToInstance(ProductResponseDto, products, { excludeExtraneousValues: true });
   }
 
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Tekil ürün detayı getir' })
   @ApiResponse({ status: 200, type: ProductResponseDto })
@@ -29,8 +31,6 @@ export class ProductsController {
   }
 
   @Post()
-  // @ApiBearerAuth()
-  // @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Yeni ürün oluştur' })
   @ApiResponse({ status: 201, type: ProductResponseDto })
   async create(@Body() createProductDto: CreateProductDto): Promise<ProductResponseDto> {
@@ -39,8 +39,6 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  // @ApiBearerAuth()
-  // @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Ürünü güncelle' })
   @ApiResponse({ status: 200, type: ProductResponseDto })
   async update(
@@ -52,8 +50,6 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  // @ApiBearerAuth()
-  // @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Ürünü sil' })
   @ApiResponse({ status: 200, description: 'Ürün başarıyla silindi.' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
