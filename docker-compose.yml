@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # 1. VERİTABANI SERVİSİ
+  db:
+    image: postgres:15-alpine
+    container_name: wibesoft_db
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}     
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  
+      POSTGRES_DB: ${DB_NAME}            
+    ports:
+      - "${DB_PORT}:${DB_PORT}"         
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. UYGULAMA SERVİSİ (Backend)
+  app:
+    container_name: wibesoft_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db 
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
