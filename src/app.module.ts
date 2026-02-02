@@ -8,6 +8,9 @@ import { UsersModule } from './modules/users/users.module';
 import { Cart } from './modules/cart/entities/cart.entity';
 import { CartItem } from './modules/cart/entities/cart-item.entity';
 import { CartModule } from './modules/cart/cart.module';
+import { Order } from './modules/order/entities/order.entity';
+import { OrderItem } from './modules/order/entities/order-item.entity';
+import { OrdersModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -21,14 +24,15 @@ import { CartModule } from './modules/cart/cart.module';
         username: ConfigService.get('DB_USERNAME'),
         password: ConfigService.get('DB_PASSWORD'),
         database: ConfigService.get('DB_NAME'),
-        entities: [Product, User, Cart, CartItem],
+        entities: [Product, User, Cart, CartItem, Order, OrderItem],
         synchronize: true
       }),
       inject: [ConfigService]
     }),
     ProductsModule,
     UsersModule,
-    CartModule
+    CartModule,
+    OrdersModule
   ],
   controllers: [],
   providers: [],
