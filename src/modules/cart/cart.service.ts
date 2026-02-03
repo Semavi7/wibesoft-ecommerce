@@ -1,15 +1,16 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { CartRepository } from './cart.repository';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { Cart } from './entities/cart.entity';
 import { ProductsService } from '../products/products.service';
+import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 
 @Injectable()
 export class CartService {
   constructor(
     private readonly cartRepository: CartRepository,
     private readonly productsService: ProductsService,
-  ) {}
+  ) { }
 
   private calculateCartTotals(cart: Cart): Cart {
     if (!cart || !cart.items) {
@@ -30,7 +31,7 @@ export class CartService {
 
   async getCart(userId: string): Promise<Cart> {
     let cart = await this.cartRepository.findByUserId(userId);
-    
+
     if (!cart) {
       cart = await this.cartRepository.createCart(userId);
     }
@@ -40,7 +41,7 @@ export class CartService {
 
   async addToCart(userId: string, dto: AddToCartDto): Promise<Cart> {
     const product = await this.productsService.findOne(dto.productId);
-    
+
     if (product.stock < dto.quantity) {
       throw new BadRequestException(`Yetersiz stok! Mevcut: ${product.stock}`);
     }
@@ -51,9 +52,27 @@ export class CartService {
     return this.getCart(userId);
   }
 
+  async updateItemQuantity(userId: string, itemId: string, dto: UpdateCartItemDto): Promise<Cart> {
+    const cart = await this.getCart(userId);
+
+    const cartItem = cart.items.find((item) => item.id === itemId);
+
+    if (!cartItem) {
+      throw new NotFoundException('Ürün sepette bulunamadı.');
+    }
+
+    if (cartItem.product.stock < dto.quantity) {
+      throw new BadRequestException(`Yetersiz stok! ${cartItem.product.name} için maksimum ${cartItem.product.stock} adet alabilirsiniz.`);
+    }
+
+    await this.cartRepository.updateItemQuantity(itemId, dto.quantity);
+
+    return this.getCart(userId);
+  }
+
   async removeFromCart(userId: string, itemId: string): Promise<Cart> {
     await this.getCart(userId);
-    
+
     await this.cartRepository.removeItem(itemId);
     return this.getCart(userId);
   }

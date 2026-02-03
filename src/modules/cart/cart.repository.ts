@@ -32,9 +32,9 @@ export class CartRepository {
 
   async addOrUpdateItem(cartId: string, product: Product, quantity: number): Promise<void> {
     const existingItem = await this.cartItemRepo.findOne({
-      where: { 
-        cart: { id: cartId }, 
-        product: { id: product.id } 
+      where: {
+        cart: { id: cartId },
+        product: { id: product.id }
       }
     });
 
@@ -57,5 +57,9 @@ export class CartRepository {
 
   async clearCart(cartId: string): Promise<void> {
     await this.cartItemRepo.delete({ cart: { id: cartId } });
+  }
+
+  async updateItemQuantity(itemId: string, quantity: number): Promise<void> {
+    await this.cartItemRepo.update(itemId, { quantity });
   }
 }

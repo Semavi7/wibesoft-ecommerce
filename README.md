@@ -18,7 +18,7 @@
 - [Docker ile Kullanım](#-docker-ile-kullanım)
 - [Veritabanı](#-veritabanı)
 - [Güvenlik](#-güvenlik)
-- [Mimari ve Tasarım](#-mimari-ve-tasarım)
+- [Mimari ve Tasarım](#️-mimari-ve-tasarım)
 
 ## 🎯 Proje Hakkında
 
@@ -44,7 +44,8 @@ Wibesoft E-Commerce API, modern bir e-ticaret platformunun backend ihtiyaçları
 - **Kullanıcı Yönetimi**: Kayıt, profil güncelleme ve yönetim
 - **Sepet Sistemi**: Kullanıcıya özel sepet işlemleri
   - Ürün ekleme/çıkarma
-  - Miktar güncelleme
+  - Miktar güncelleme (PATCH endpoint ile)
+  - Stok kontrollü ekleme ve güncelleme
   - Gerçek zamanlı toplam hesaplama
 - **Sipariş Yönetimi**: Checkout ve sipariş takibi
   - Sipariş oluşturma (sepetten)
@@ -155,6 +156,7 @@ wibesoft-ecommerce/
 │   │   ├── cart/                        # Sepet işlemleri
 │   │   │   ├── dto/
 │   │   │   │   ├── add-to-cart.dto.ts
+│   │   │   │   ├── update-cart-item.dto.ts
 │   │   │   │   ├── cart-item-response.dto.ts
 │   │   │   │   └── cart-response.dto.ts
 │   │   │   ├── entities/
@@ -335,6 +337,7 @@ npm run format
 |--------|----------|----------|------|
 | GET | `/cart` | Aktif kullanıcının sepetini getir | ✅ |
 | POST | `/cart` | Sepete ürün ekle | ✅ |
+| PATCH | `/cart/:itemId` | Sepetteki ürün adedini güncelle | ✅ |
 | DELETE | `/cart/:itemId` | Sepetten ürün çıkar | ✅ |
 
 **Add to Cart Request:**
@@ -342,6 +345,13 @@ npm run format
 {
   "productId": "uuid",
   "quantity": 2
+}
+```
+
+**Update Cart Item Quantity Request:**
+```json
+{
+  "quantity": 3
 }
 ```
 
