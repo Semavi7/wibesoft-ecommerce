@@ -39,6 +39,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    command: sh -c "node_modules/.bin/typeorm migration:run -d ./dist/common/db/data-source.js && npm run start:prod"
 
 volumes:
   postgres_data:

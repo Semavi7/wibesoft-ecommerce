@@ -55,6 +55,7 @@ Wibesoft E-Commerce API, modern bir e-ticaret platformunun backend ihtiyaçları
 
 ### 📊 Teknik Özellikler
 - **TypeORM** ile güçlü veritabanı yönetimi
+- **TypeORM Migrations** ile veritabanı şema versiyonlama
 - **PostgreSQL** veritabanı desteği
 - **Swagger/OpenAPI** otomatik API dokümantasyonu
 - **DTO Validation** ile veri doğrulama (class-validator)
@@ -105,10 +106,16 @@ wibesoft-ecommerce/
 ├── src/
 │   ├── common/                          # Paylaşılan kod
 │   │   ├── base.entity.ts              # Base entity (id, timestamps)
+│   │   ├── db/
+│   │   │   ├── typeorm.config.ts       # TypeORM konfigürasyonu
+│   │   │   └── data-source.ts          # Migration DataSource
 │   │   ├── filters/
 │   │   │   └── http-exception.filter.ts # Global exception handling
 │   │   └── interceptors/
 │   │       └── logging.interceptor.ts   # Request/Response logging
+│   │
+│   ├── migrations/                      # TypeORM migrations
+│   │   └── 1770197194336-InitialMigration.ts
 │   │
 │   ├── modules/
 │   │   ├── auth/                        # Kimlik doğrulama modülü
@@ -244,6 +251,15 @@ PostgreSQL'de veritabanını oluşturun:
 ```sql
 CREATE DATABASE ecommerce_db;
 ```
+
+### 5. Migration'ları Çalıştırın
+Veritabanı şemasını oluşturmak için migration'ları çalıştırın:
+
+```bash
+npm run migration:run
+```
+
+> 💡 **Not**: Migration sistemi aktif olduğu için (`synchronize: false`), veritabanı şeması migration'lar ile yönetilir.
 
 ## 🎮 Kullanım
 
@@ -459,6 +475,57 @@ Dockerfile, **multi-stage build** kullanarak optimize edilmiştir:
 
 ## 🗄️ Veritabanı
 
+### TypeORM Migration Sistemi
+
+Proje, TypeORM'in migration özelliğini kullanarak veritabanı şema yönetimini sağlar. Bu sayede:
+- ✅ **Veritabanı değişiklikleri versiyonlanır**
+- ✅ **Production'da güvenli şema güncellemeleri**
+- ✅ **Geri alma (rollback) desteği**
+- ✅ **Ekip üyeleri arasında şema senkronizasyonu**
+
+#### Migration Komutları
+
+```bash
+# Yeni migration oluştur (şemadaki değişikliklerden)
+npm run migration:generate -- src/migrations/MigrationName
+
+# Migration'ları çalıştır (veritabanını güncelle)
+npm run migration:run
+
+# Son migration'ı geri al
+npm run migration:revert
+```
+
+#### Migration Workflow
+
+1. **Entity'lerde değişiklik yap** (örn: yeni sütun ekle)
+2. **Migration oluştur:**
+   ```bash
+   npm run migration:generate -- src/migrations/AddColumnToProduct
+   ```
+3. **Migration'ı incele** (`src/migrations/` klasöründe)
+4. **Migration'ı uygula:**
+   ```bash
+   npm run migration:run
+   ```
+
+#### Docker ile Migration
+
+Docker Compose kullanılırken, migration'lar otomatik çalıştırılır:
+```yaml
+command: sh -c "node_modules/.bin/typeorm migration:run -d ./dist/common/db/data-source.js && npm run start:prod"
+```
+
+> ⚠️ **Önemli**: `synchronize: false` ayarı ile migration sistemi aktiftir. Manuel veritabanı değişiklikleri migration ile yönetilmelidir.
+
+#### Mevcut Migration'lar
+
+**InitialMigration (1770197194336)**
+- Tüm temel tabloları oluşturur (`users`, `products`, `carts`, `cart_items`, `orders`, `order_items`)
+- Foreign key ilişkilerini kurar
+- Enum type'ları tanımlar (`order_status_enum`)
+- Cascade delete davranışlarını ayarlar
+
 ### Entity İlişkileri
 
 ```mermaid
@@ -537,10 +604,11 @@ Tüm entity'ler `BaseEntity` sınıfından türetilmiştir:
 - `updatedAt`: Güncellenme zamanı
 
 ### TypeORM Configuration
-- **Synchronize**: `true` (Development için - Production'da migration kullanın!)
+- **Synchronize**: `false` (Production-ready! Migration sistemi aktif)
 - **Database Type**: PostgreSQL
 - **Connection Pooling**: Default settings
 - **Naming Strategy**: Default snake_case
+- **Migrations**: TypeORM migration sistemi ile veritabanı şema yönetimi
 
 ## 🔒 Güvenlik
 
