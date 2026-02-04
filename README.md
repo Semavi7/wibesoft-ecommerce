@@ -437,11 +437,45 @@ npm run format
 
 Proje, Docker ve Docker Compose ile production-ready olarak çalıştırılabilir.
 
+### Gereksinimler
+- **Docker** >= 20.x
+- **Docker Compose** >= 2.x
+
+### 1. Repository'yi Klonlayın
+```bash
+git clone https://github.com/Semavi7/wibesoft-ecommerce.git
+cd wibesoft-ecommerce
+```
+
+### 2. Environment Variables Ayarlayın
+`.env` dosyasını oluşturun ve aşağıdaki değişkenleri yapılandırın:
+
+```env
+# Database Configuration
+DB_HOST=db
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=your_password_here
+DB_NAME=ecommerce_db
+
+# JWT Configuration
+JWT_SECRET=your_secret_key_here
+JWT_EXPIRES_IN=1d
+
+# Application
+NODE_ENV=production
+PORT=3000
+```
+
+> ⚠️ **Güvenlik Notu**: Production ortamında `JWT_SECRET` ve `DB_PASSWORD` değerlerini mutlaka değiştirin!
+> 
+> 💡 **Docker Not**: `DB_HOST` değeri docker-compose servis adı olan `db` olmalıdır.
+
 ### Servisler
 - **db**: PostgreSQL 15 Alpine
 - **app**: NestJS Application (Multi-stage build)
 
-### Çalıştırma
+### 3. Çalıştırma
 ```bash
 # Servisleri başlat (detached mode)
 docker-compose up -d
